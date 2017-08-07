@@ -20,8 +20,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.TextViewCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.TypedValue;
@@ -31,7 +31,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,14 +63,14 @@ public class CheeseListFragment extends Fragment {
         return list;
     }
 
-    public static class SimpleStringRecyclerViewAdapter
+    public class SimpleStringRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleStringRecyclerViewAdapter.ViewHolder> {
 
         private final TypedValue mTypedValue = new TypedValue();
         private int mBackground;
         private List<String> mValues;
 
-        public static class ViewHolder extends RecyclerView.ViewHolder {
+        public class ViewHolder extends RecyclerView.ViewHolder {
             public String mBoundString;
 
             public final View mView;
@@ -109,20 +109,31 @@ public class CheeseListFragment extends Fragment {
             holder.mBoundString = mValues.get(position);
             holder.mTextView.setText(mValues.get(position));
 
+            final int drawableId = Cheeses.getRandomCheeseDrawable();
+
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Context context = v.getContext();
                     Intent intent = new Intent(context, CheeseDetailActivity.class);
                     intent.putExtra(CheeseDetailActivity.EXTRA_NAME, holder.mBoundString);
+                    intent.putExtra(CheeseDetailActivity.EXTRA_IMAGE, drawableId);
 
-                    context.startActivity(intent);
+                    ActivityOptionsCompat options = ActivityOptionsCompat.
+                            makeSceneTransitionAnimation(CheeseListFragment.this.getActivity(),
+                                    holder.mImageView, "avatar");
+                    startActivity(intent, options.toBundle());
+
+                    /*Pair<View, String> p1 = Pair.create((View)holder.mImageView, "avatar");
+                    Pair<View, String> p2 = Pair.create(view2, "view2");
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(CheeseListFragment.this.getActivity(), p1, p2);
+                    startActivity(intent, options.toBundle());*/
                 }
             });
 
-            Glide.with(holder.mImageView.getContext())
-                    .load(Cheeses.getRandomCheeseDrawable())
-                    .fitCenter()
+            Picasso.with(holder.mImageView.getContext())
+                    .load(drawableId)
+                    .fit()
                     .into(holder.mImageView);
         }
 
